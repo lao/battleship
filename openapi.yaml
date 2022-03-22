@@ -1,0 +1,86 @@
+openapi: 3.0.3
+info:
+  title: Battleship Game API
+  description: WeTransfer's own special Battleship game! There are 3 different maps, each one with its own enemy. Each map contains 1 ship only that needs to be sunk! 
+  version: 1.0.0
+externalDocs:
+  description: Repo
+  url: https://github.com/WeTransfer/?
+servers:
+  - url: https://metapod.wetransfer.com/v1
+  - url: http://metapod.wetransferbeta.com/v1
+tags:
+  - name: GameSetup
+    description: Game management endpoint
+  - name: GamePlay
+    description: Action endpoint
+paths:
+  /game/start:
+    head:
+      tags:
+        - GameSetup
+      summary: Prepare the field for battle and start new game
+      operationId: SetGame
+      responses:
+        200:
+          description: Game is ready
+  /game/attack:
+    post:
+      tags:
+        - GamePlay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttackCommand'
+      summary: Attack cell at the passed coordinates and against the selected enemy
+      operationId: attack
+      responses:
+        200:
+          description: Successful attack. Amount of pieces of ship left, per enemy type, is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnemyLeft'
+        404:
+          description: Missed
+          content: {}
+        400:
+          description: Cell not valid
+          content: {}
+        500:
+          description: Something went wrong in the game
+          content: {}
+components:
+  schemas:
+    EnemyType:
+      type: string
+      enum:
+      - Pegacordian
+      - Transloadian
+      - Kubernitos
+    AttackCommand:
+      type: object
+      required:
+        - EnemyType
+        - CellAttacked
+      properties:
+        EnemyType:
+          $ref: '#/components/schemas/EnemyType'
+        CellAttacked:
+          type: string
+          pattern: '[A-J][0-9]'
+      example:
+        EnemyType: Pegacordian
+        CellAttacked: B7
+    EnemyLeft:
+      type: object
+      properties:
+        Pegacordian:
+          type: integer
+        Transloadian:
+          type: integer
+        Kubernitos:
+          type: integer
+      
